@@ -17,6 +17,12 @@ class Settings(BaseSettings):
     REDIS_HOST: str
     REDIS_PORT: str
 
+    JWT_SECRET_KEY: str
+    COOKIE_NAME: str
+    COOKIE_AGE: int
+
+    COOKIE_PARAMS: dict = {"secure": False, "samesite": "none", "httponly": True}
+
     @cached_property
     def POSTGRES_DSN(self):
         return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASS}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_BASE}"
