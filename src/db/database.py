@@ -15,7 +15,6 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 
 class Base(DeclarativeBase):
-
     repr_cols_num = 3
     repr_cols = tuple()
 

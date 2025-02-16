@@ -15,6 +15,10 @@ class User(Base):
 class Book(Base):
     __tablename__ = "books"
 
+    id: Mapped[int] = mapped_column(primary_key=True)
+
 
 class Author(Base):
     __tablename__ = "authors"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
