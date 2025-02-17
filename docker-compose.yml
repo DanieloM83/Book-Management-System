@@ -1,0 +1,73 @@
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres_db
+    command: -p ${POSTGRES_PORT}
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASS}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_BASE}
+    volumes:
+      - postgres_db_data:/var/lib/postgresql/data
+    expose:
+      - ${POSTGRES_PORT}
+    networks:
+      - book_management_system_network
+    env_file:
+      - .env
+    healthcheck:
+      test: [
+        "CMD", "pg_isready",
+        "--dbname=${POSTGRES_BASE}",
+        "--username=${POSTGRES_USER}",
+        "--port=${POSTGRES_PORT}"
+      ]
+      interval: 5s
+      timeout: 10s
+      retries: 120
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    command: [ "--port", "${REDIS_PORT}", "--loglevel", "warning" ]
+    expose:
+      - ${REDIS_PORT}
+    networks:
+      - book_management_system_network
+    env_file:
+      - ./.env
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      interval: 5s
+      timeout: 10s
+      retries: 120
+
+  backend:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    container_name: app_backend
+    ports:
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
+    networks:
+      - book_management_system_network
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 30
+
+networks:
+  book_management_system_network:
+    name: book_management_system_network
+
+volumes:
+  postgres_db_data:
+    name: postgres_db_data
