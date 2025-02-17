@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 
-from api.schemas.auth import UserCredentialsSchema, UserSchema
+from api.schemas.auth import UserCredentialsSchema
 from db.models import User
 
 

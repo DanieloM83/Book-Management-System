@@ -66,7 +66,6 @@ class AuthService:
         payload = self.__decode_jwt(access_token)
         if payload is None:
             return None
-        print(payload)
         user = await self.repo.get_user_by_id(int(payload["user_id"]))
         if user is None:
             return None

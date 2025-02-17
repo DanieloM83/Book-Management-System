@@ -3,10 +3,12 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from core.config import settings
 from api.routes.auth import auth_router
+from api.routes.books import book_router
 
 app = FastAPI()
 
 app.include_router(auth_router)
+app.include_router(book_router)
 
 app.add_middleware(
     CORSMiddleware,
