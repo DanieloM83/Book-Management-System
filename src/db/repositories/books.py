@@ -1,5 +1,6 @@
 from typing import Optional
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 
@@ -26,7 +27,7 @@ class BookRepo:
         row = result.fetchone()
         return row._mapping if row else None
 
-    async def get_books(self, size: int = 10, page: int = 1, sort_by: str = "", sort_by_asc: bool = True,
+    async def get_books(self, size: int = 10, page: int = 1, sort_by: str = "id", sort_by_asc: bool = True,
                         title: Optional[str] = None, author_name: Optional[str] = None, genre: Optional[str] = None,
                         year_min: Optional[int] = None, year_max: Optional[int] = None) -> list[Book]:
         query = "SELECT * FROM books WHERE 1=1"
@@ -56,6 +57,7 @@ class BookRepo:
 
         result = await self.session.execute(text(query), params)
         result = result.fetchall()
+        print(result)
         return [Book(**row._mapping) for row in result]
 
     async def create_book(self, title: str, author_name: str, genre: str, year: int) -> Book | None:
@@ -65,16 +67,20 @@ class BookRepo:
             ON CONFLICT (name) DO NOTHING;
         """)
         await self.session.execute(query1, {"author_name": author_name})
-        query2 = text("""
-            INSERT INTO books (title, author_name, genre, year)
-            VALUES (:title, :author_name, :genre, :year)
-            RETURNING *;
-        """)
-        params = {"title": title, "author_name": author_name, "genre": genre, "year": year}
-        result = await self.session.execute(query2, params)
-        result = result.fetchone()
-        await self.session.commit()
-        return Book(**result._mapping) if result else None
+        try:
+            query2 = text("""
+                INSERT INTO books (title, author_name, genre, year)
+                VALUES (:title, :author_name, :genre, :year)
+                RETURNING *;
+            """)
+            params = {"title": title, "author_name": author_name, "genre": genre, "year": year}
+            result = await self.session.execute(query2, params)
+            result = result.fetchone()
+            await self.session.commit()
+            return Book(**result._mapping) if result else None
+        except IntegrityError:
+            await self.session.rollback()
+            return None
 
     async def delete_book(self, book_id: int) -> bool:
         result = await self.session.execute(text("DELETE FROM books WHERE id = :id"), {"id": book_id})

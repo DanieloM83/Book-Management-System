@@ -8,6 +8,20 @@ from services.auth_service import AuthService
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
 
+async def get_current_user(
+        auth_service: AuthService = Depends(AuthService),
+        access_token: str | None = Cookie(alias=settings.COOKIE_NAME, default=None),
+) -> UserSchema:
+    if access_token is None:
+        raise NotLoggedInError()
+
+    user = await auth_service.get_user(access_token)
+    if user is None:
+        raise NotLoggedInError()
+
+    return UserSchema.model_validate(user, from_attributes=True)
+
+
 @auth_router.post("/register")
 async def register(
         response: Response,
@@ -39,17 +53,10 @@ async def login(
 
 
 @auth_router.get("/current_user")
-async def get_current_user(
-        auth_service: AuthService = Depends(AuthService),
-        access_token: str | None = Cookie(alias=settings.COOKIE_NAME, default=None),
+async def current_user(
+        current_user: UserSchema = Depends(get_current_user)
 ) -> UserSchema:
-    if access_token is None:
-        raise NotLoggedInError()
-
-    user = await auth_service.get_user(access_token)
-    if user is None:
-        raise NotLoggedInError()
-    return UserSchema.model_validate(user, from_attributes=True)
+    return current_user
 
 
 @auth_router.post("/logout")
