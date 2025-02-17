@@ -7,7 +7,6 @@ from services.auth_service import AuthService
 
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
-
 async def get_current_user(
         auth_service: AuthService = Depends(AuthService),
         access_token: str | None = Cookie(alias=settings.COOKIE_NAME, default=None),

@@ -28,8 +28,7 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-print(settings.ALEMBIC_DSN)
-print(User, Book, Author)
+
 target_metadata = User.metadata
 
 
